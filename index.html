@@ -1,0 +1,865 @@
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Estoque.</title>
+    <link rel="icon" type="image/svg+xml" href="static/assets/favicon.svg">
+    <link rel="stylesheet" href="static/css/app.css">
+  </head>
+  <body>
+    <section id="authScreen" class="auth-screen">
+      <div class="auth-layout">
+        <div class="auth-hero">
+          <div class="auth-hero-brand">Estoque<span>.</span></div>
+          <p>O seu controle de produtos.<br>Organize e acompanhe.</p>
+        </div>
+        <div class="auth-panel">
+          <div class="auth-panel-head"><span class="auth-kicker">BEM-VINDO</span><h1 id="authTitle">Entrar na sua conta</h1><p id="authIntro">Acesse seu espaço de trabalho.</p></div>
+          <form id="loginForm" class="auth-form">
+            <label>E-mail<input id="loginEmail" name="email" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required></label>
+            <label>Senha<input id="loginPassword" name="password" type="password" autocomplete="current-password" placeholder="Digite sua senha" required></label>
+            <label class="auth-remember"><input id="rememberLogin" type="checkbox"> Lembrar meu e-mail</label>
+            <button class="primary auth-submit" type="submit">Entrar</button>
+            <p id="authMessage" class="auth-message" role="alert"></p>
+          </form>
+          <div id="firstAccountBox" class="first-account"><span>É seu primeiro acesso?</span><button id="showRegister" type="button">Clique aqui para criar a sua conta</button></div>
+          <form id="registerForm" class="auth-form" hidden>
+            <label>E-mail<input name="email" type="email" autocomplete="email" placeholder="seuemail@exemplo.com" required></label>
+            <label>Senha<input name="password" type="password" autocomplete="new-password" minlength="8" placeholder="Mínimo de 8 caracteres" required></label>
+            <label>Confirmar senha<input name="confirm" type="password" autocomplete="new-password" minlength="8" placeholder="Repita sua senha" required></label>
+            <div class="captcha-row"><div><span class="captcha-label">Verificação</span><div id="registerCaptchaVisual" class="captcha-visual" aria-label="Código de verificação"></div></div><button id="refreshRegisterCaptcha" type="button" class="captcha-refresh" aria-label="Gerar outro código">↻</button><input id="registerCaptchaInput" class="captcha-input" name="captcha" inputmode="text" autocomplete="off" placeholder="Código" required></div>
+            <button class="primary auth-submit" type="submit">Criar minha conta</button>
+            <button id="cancelRegister" type="button" class="auth-back">Voltar para o login</button>
+          </form>
+        </div>
+      </div>
+    </section>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        Estoque<span style="color: #f8061b">.</span
+        ><small>Controle de produtos</small>
+      </div>
+      <nav>
+        <button type="button" data-view="home-dashboard" class="active dashboard-nav-item">Dashboard</button>
+        <button type="button" data-view="dashboard">Produtos</button>
+        <button type="button" data-view="entry">Entrada</button>
+        <button type="button" data-view="exit">Saída</button>
+        <button type="button" data-view="transfer">Transferência</button>
+        <button type="button" data-view="tasks" class="tasks-nav-item">
+          Tasks
+          <span id="tasksNavBadge" class="tasks-nav-badge" hidden>0</span>
+        </button>
+        <button type="button" data-view="warehouses">Estoques</button>
+        <button type="button" data-view="history">Histórico</button>
+        <button type="button" data-view="categories">Categorias</button>
+        <button type="button" data-view="catalogs">Marcas / Fornecedores</button>
+        <button type="button" data-view="addons">Addons</button>
+        <div id="specialNavItems" class="special-nav-items"></div>
+        <div id="apiSubnav" class="api-subnav" hidden>
+          <button type="button" data-view="marketplaces" data-connection="mercadolivre">Mercado Livre</button>
+          <button type="button" data-view="marketplaces" data-connection="shopee">Shopee</button>
+          <div id="apiCustomNav"></div>
+          <button type="button" class="api-new-connection" id="newCustomConnectionNav" data-action="new-custom-connection">+ Nova conexão</button>
+        </div>
+        <button type="button" data-view="importexport">Importar/Exportar</button>
+        <button type="button" id="logoutAccount" class="logout-account">Sair da conta</button>
+      </nav>
+    </aside>
+    <div id="mobileMenuBackdrop" class="mobile-menu-backdrop" hidden></div>
+    <div class="app-shell">
+      <header class="topbar">
+        <button
+          type="button"
+          class="mobile-menu-toggle"
+          id="mobileMenuToggle"
+          aria-label="Abrir menu"
+          aria-expanded="false"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <div class="topbar-title">Estoque.</div>
+        <div class="topbar-tools">
+          <button type="button" class="tool-button" id="calculatorToggle">
+            Calculadora</button
+          ><button
+            type="button"
+            class="tool-button"
+            id="weightCalculatorToggle"
+          >
+            Calculadora de peso
+          </button>
+        </div>
+        <div class="warehouse">
+          <label>Visualizar</label
+          ><select id="globalWarehouse"></select>
+        </div>
+        <div id="calculatorTool" class="toolbar-tool">
+          <h3>Calculadora</h3>
+          <input
+            id="calcDisplay"
+            class="calculator-display"
+            inputmode="decimal"
+            placeholder="0"
+          />
+          <div class="calculator-grid">
+            <button type="button" data-calc="C">C</button
+            ><button type="button" data-calc="back">⌫</button
+            ><button type="button" data-calc="/">÷</button
+            ><button type="button" data-calc="*">×</button
+            ><button type="button" data-calc="7">7</button
+            ><button type="button" data-calc="8">8</button
+            ><button type="button" data-calc="9">9</button
+            ><button type="button" data-calc="-">−</button
+            ><button type="button" data-calc="4">4</button
+            ><button type="button" data-calc="5">5</button
+            ><button type="button" data-calc="6">6</button
+            ><button type="button" data-calc="+">+</button
+            ><button type="button" data-calc="1">1</button
+            ><button type="button" data-calc="2">2</button
+            ><button type="button" data-calc="3">3</button
+            ><button type="button" data-calc=".">.</button
+            ><button type="button" data-calc="0">0</button
+            ><button type="button" data-calc="(">(</button
+            ><button type="button" data-calc=")">)</button
+            ><button type="button" class="calc-equals" data-calc="=">=</button>
+          </div>
+        </div>
+        <div id="weightCalculatorTool" class="toolbar-tool">
+          <h3>Calculadora de peso</h3>
+          <p class="product-meta">
+            Informe o peso de uma amostra e o peso total. O resultado é
+            atualizado enquanto você digita.
+          </p>
+          <div class="weight-tool-form">
+            <label
+              >Quantidade pesada<input
+                id="weightSampleQuantity"
+                type="number"
+                min="0.01"
+                step="0.01"
+                placeholder="Ex.: 30" /></label
+            ><label
+              >Peso da amostra<input
+                id="weightSampleWeight"
+                type="number"
+                min="0.000001"
+                step="0.000001"
+                placeholder="Ex.: 0,12 kg" /></label
+            ><label
+              >Peso total<input
+                id="weightTotal"
+                type="number"
+                min="0"
+                step="0.000001"
+                placeholder="Ex.: 4 kg"
+            /></label>
+          </div>
+          <div id="weightResult" class="weight-result">
+            —<small>Quantidade estimada</small>
+          </div>
+        </div>
+      </header>
+      <main>
+        <section id="home-dashboard" class="view active command-dashboard">
+          <div class="vd">
+            <div class="command-topbar"><div><h1>Dashboard <span class="command-live-dot"></span></h1><p class="command-subtitle">Visão completa do estoque. Blocos de add-on aparecem só quando o add-on está ligado.</p></div></div>
+            <div class="vd-panel vd-filters"><div class="vd-tools">
+              <label>Período<select id="dashboardPeriod"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="90">Últimos 90 dias</option><option value="month">Mês atual</option><option value="prev_month">Mês passado</option><option value="quarter">Trimestre atual</option><option value="year">Ano atual</option><option value="365">Últimos 12 meses</option><option value="custom">Personalizado</option></select></label>
+              <label>De<input type="date" id="dashboardFrom" disabled></label><label>Até<input type="date" id="dashboardTo" disabled></label>
+              <label>Categoria<select id="dashboardCategory"><option value="">Todas as categorias</option></select></label>
+              <label>Comparar<select id="dashboardCompare"><option value="previous">Período anterior</option><option value="none">Sem comparação</option></select></label>
+            </div><div class="vd-s" id="dashboardRangeInfo" style="margin:0"></div></div>
+            <div id="dashboardV2"></div>
+          </div>
+        </section>
+        <section id="dashboard" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">VISÃO GERAL</p>
+              <h1>Produtos</h1>
+            </div>
+            <button class="primary" id="newProduct">+ Novo produto</button>
+          </div>
+          <div class="toolbar">
+            <input
+              id="search"
+              class="search-input"
+              placeholder="Pesquisar produto por nome, SKU ou marca"
+            /><select id="categoryFilter">
+              <option value="">Todas categorias</option></select
+            ><select id="typeFilter">
+              <option value="">Todos os tipos</option>
+              <option value="common">Produto comum</option>
+              <option value="outsourcing">Terceirização</option>
+              <option value="dynamic">Produto dinâmico</option>
+              <option value="kit">Kit</option></select
+            ><select id="statusFilter">
+              <option value="">Todas situações</option>
+              <option value="low">Abaixo do mínimo</option>
+              <option value="ok">Estoque normal</option>
+              <option value="high">Acima do máximo</option>
+              <option value="zero">Sem estoque</option>
+            </select>
+          </div>
+          <div id="productGrid" class="product-grid"></div>
+        </section>
+        <section id="productDetail" class="view">
+          <div class="product-detail-head">
+            <div>
+              <p class="eyebrow">PRODUTO</p>
+              <h1 id="productDetailTitle">Detalhes do produto</h1>
+              <p id="productDetailMeta" class="product-meta"></p>
+            </div>
+            <button type="button" id="backToProducts" class="back-link">
+              ← Voltar para produtos
+            </button>
+          </div>
+          <div class="product-detail-layout">
+            <div class="product-history-panel">
+              <div id="productDetailSummary" class="product-summary"></div>
+              <h3>Histórico de movimentações</h3>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Tipo</th>
+                      <th>Quantidade</th>
+                      <th>Estoque</th>
+                      <th>Venda</th>
+                      <th>Observação</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productDetailHistory"></tbody>
+                </table>
+              </div>
+            </div>
+            <aside class="product-actions-panel">
+              <h3>Operações deste produto</h3>
+              <div class="operation-buttons">
+                <button
+                  type="button"
+                  class="operation-toggle"
+                  data-operation="entry"
+                >
+                  Registrar entrada
+                </button>
+                <form
+                  id="productEntryForm"
+                  class="product-operation-panel"
+                  data-operation-panel="entry"
+                >
+                  <div class="action-grid">
+                    <label
+                      >Estoque<select
+                        name="warehouse_id"
+                        required
+                      ></select></label
+                    ><label
+                      >Quantidade<input
+                        name="quantity"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    /></label>
+                  </div>
+                  <label
+                    >Nota de entrada<input
+                      name="invoice"
+                      placeholder="Ex.: NF-000123" /></label
+                  ><label>Data de entrada<input name="date" type="date" /></label
+                  ><label class="product-entry-validity" style="display:none">Data de validade<input name="expiry_date" type="date" /></label
+                  ><label
+                    >Observação<input
+                      name="note"
+                      placeholder="Opcional" /></label
+                  ><button class="primary">Registrar entrada</button>
+                </form>
+                <button
+                  type="button"
+                  class="operation-toggle"
+                  data-operation="exit"
+                >
+                  Registrar saída
+                </button>
+                <form
+                  id="productExitForm"
+                  class="product-operation-panel"
+                  data-operation-panel="exit"
+                >
+                  <div class="action-grid">
+                    <label
+                      >Estoque<select
+                        name="warehouse_id"
+                        required
+                      ></select></label
+                    ><label
+                      >Quantidade<input
+                        name="quantity"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        required
+                    /></label>
+                  </div>
+                  <label
+                    >Origem da venda<input
+                      name="sale_source"
+                      list="saleSourceOptions"
+                      placeholder="Sistema, Mercado Livre, Shopee..." /></label
+                  ><label
+                    >Número da nota<input
+                      name="invoice"
+                      placeholder="Opcional" /></label
+                  ><label>Data da saída<input name="date" type="date" /></label
+                  ><label
+                    >Observação<input
+                      name="note"
+                      placeholder="Opcional" /></label
+                  ><button class="primary">Registrar saída</button>
+                </form>
+                <button
+                  type="button"
+                  class="operation-toggle"
+                  data-operation="transfer"
+                >
+                  Transferir produto
+                </button>
+                <form
+                  id="productTransferForm"
+                  class="product-operation-panel"
+                  data-operation-panel="transfer"
+                >
+                  <div class="action-grid">
+                    <label
+                      >Origem<select
+                        name="from_warehouse_id"
+                        required
+                      ></select></label
+                    ><label
+                      >Destino<select name="to_warehouse_id" required></select
+                    ></label>
+                  </div>
+                  <label
+                    >Quantidade<input
+                      name="quantity"
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      required /></label
+                  ><label
+                    >Observação<input
+                      name="note"
+                      placeholder="Opcional" /></label
+                  ><button class="primary">Transferir produto</button>
+                </form>
+                <button
+                  type="button"
+                  class="operation-toggle"
+                  data-operation="adjustment"
+                >
+                  Ajuste de inventário
+                </button>
+                <form
+                  id="productAdjustmentForm"
+                  class="product-operation-panel"
+                  data-operation-panel="adjustment"
+                >
+                  <label
+                    >Estoque<select
+                      name="warehouse_id"
+                      required
+                    ></select></label
+                  ><label
+                    >Nova contagem física<input
+                      name="new_quantity"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      required /></label
+                  ><label
+                    >Motivo<input
+                      name="reason"
+                      list="adjustReasonOptions"
+                      value="Contagem física"
+                      required /></label
+                  ><label
+                    >Observação<input name="note" placeholder="Opcional"
+                  /></label>
+                  <p class="adjustment-note">
+                    O saldo anterior permanece no histórico. O sistema registra
+                    a diferença e a nova contagem.
+                  </p>
+                  <button class="primary">Salvar ajuste</button>
+                </form>
+              </div>
+            </aside>
+            <div class="product-kits product-kits-bottom">
+              <h3>Incluído nos kits</h3>
+              <div id="productDetailKits" class="product-kits-list"></div>
+            </div>
+          </div>
+        </section>
+        <section id="entry" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">OPERAÇÃO</p>
+              <h1>Entrada de produtos</h1>
+            </div>
+          </div>
+          <form id="entryForm" class="panel operation-panel">
+            <div class="operation-top">
+              <label
+                >Número da nota de entrada<input
+                  name="invoice"
+                  placeholder="Ex.: NF-000123" /></label
+              ><label>Data<input name="date" type="date" /></label
+              ><label
+                >Observação<input name="note" placeholder="Opcional"
+              /></label>
+            </div>
+            <div class="line-head entry-head">
+              <span>Produto</span><span>Estoque</span><span>Quantidade</span
+              ><span>Validade</span><span>Observação</span><span></span>
+            </div>
+            <div id="entryLines"></div>
+            <button type="button" class="add-line" data-kind="entry">
+              + Adicionar produto
+            </button>
+            <div class="operation-actions">
+              <button class="primary" type="submit">Registrar entrada</button>
+            </div>
+          </form>
+          <div id="recentEntry" class="recent-panel"></div>
+        </section>
+        <section id="exit" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">OPERAÇÃO</p>
+              <h1>Saída de produtos ou kits</h1>
+            </div>
+          </div>
+          <form id="exitForm" class="panel operation-panel">
+            <div class="operation-top">
+              <label
+                >Observação<input name="note" placeholder="Opcional"
+              /></label>
+            </div>
+            <div class="line-head">
+              <span>Produto ou kit</span><span>Estoque</span
+              ><span>Quantidade</span><span>Observação</span><span></span>
+            </div>
+            <div id="exitLines"></div>
+            <button type="button" class="add-line" data-kind="exit">
+              + Adicionar produto ou kit
+            </button>
+            <div class="operation-actions">
+              <button class="primary" type="submit">Registrar saída</button>
+            </div>
+          </form>
+          <div id="recentExit" class="recent-panel"></div>
+        </section>
+        <section id="transfer" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">OPERAÇÃO</p>
+              <h1>Transferência entre estoques</h1>
+            </div>
+          </div>
+          <form id="transferForm" class="panel operation-panel">
+            <div class="operation-top">
+              <label
+                >Observação<input name="note" placeholder="Opcional"
+              /></label>
+            </div>
+            <div class="line-head transfer-head">
+              <span>Produto</span><span>Estoque de origem</span
+              ><span>Estoque de destino</span><span>Quantidade</span
+              ><span></span>
+            </div>
+            <div id="transferLines"></div>
+            <button type="button" class="add-line" data-kind="transfer">
+              + Adicionar produto
+            </button>
+            <div class="operation-actions">
+              <button class="primary" type="submit">Mover produtos</button>
+            </div>
+          </form>
+          <div id="recentTransfer" class="recent-panel"></div>
+        </section>
+        <section id="kits" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">COMPOSIÇÃO</p>
+              <h1>Kits</h1>
+            </div>
+            <button class="primary" id="newKit">+ Montar kit</button>
+          </div>
+          <div id="kitGrid" class="kit-grid"></div>
+        </section>
+        <section id="outsourcing" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">PRODUÇÃO EXTERNA</p>
+              <h1>Terceirização</h1>
+              <p class="product-meta">
+                Acompanhe contagens, envios, retornos e conferências de serviços
+                terceirizados.
+              </p>
+            </div>
+            <div class="outsourcing-head-actions">
+              <button
+                class="secondary outsourcing-catalog-button"
+                id="openOutCatalog"
+                title="Abrir produtos indicados"
+                aria-label="Abrir produtos indicados"
+              >
+                Produtos salvos</button
+              ><button class="primary" id="newOutsourcing">
+                + Nova contagem
+              </button>
+            </div>
+          </div>
+          <div id="outsourcingSummary" class="outsourcing-summary"></div>
+          <div class="outsourcing-toolbar">
+            <input
+              id="outsourcingSearch"
+              placeholder="Pesquisar por produto ou código da família"
+              aria-label="Pesquisar terceirização"
+            /><select
+              id="outsourcingStatusFilter"
+              aria-label="Filtrar por status"
+            >
+              <option value="">Todos os status</option>
+              <option value="counted">Contado</option>
+              <option value="sent">Aguardando retorno</option>
+              <option value="returned">Retorno registrado</option>
+              <option value="confirmed">Concluído</option>
+            </select>
+          </div>
+          <div id="outsourcingWarnings" class="outsourcing-warnings"></div>
+          <aside
+            id="outsourcingCatalog"
+            class="outsourcing-catalog"
+            aria-hidden="true"
+          ></aside>
+          <h3 class="section-label">
+            Em andamento
+            <span id="outsourcingActiveCount" class="section-count">0</span>
+          </h3>
+          <div id="outsourcingActive" class="outsourcing-grid"></div>
+          <h3 class="section-label">
+            Concluídos
+            <span id="outsourcingCompletedCount" class="section-count">0</span>
+          </h3>
+          <div id="outsourcingCompleted" class="outsourcing-grid"></div>
+        </section>
+        <section id="dynamic-products" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">ESTRUTURA E COMPOSIÇÃO</p>
+              <h1>Produtos dinâmicos</h1>
+              <p class="product-meta">
+                Monte chapas, modelos e peças em quantas etapas forem
+                necessárias. Componentes com o mesmo grupo compartilham estoque.
+              </p>
+            </div>
+            <button class="primary" id="newDynamicProduct">
+              + Novo produto dinâmico
+            </button>
+          </div>
+          <div class="dynamic-layout">
+            <aside class="panel dynamic-sidebar">
+              <input
+                id="dynamicSearch"
+                placeholder="Pesquisar produto dinâmico"
+              />
+              <div id="dynamicProductList"></div>
+            </aside>
+            <div class="dynamic-workspace">
+              <div id="dynamicEmpty" class="panel dynamic-empty">
+                <h2>Selecione ou cadastre um produto</h2>
+                <p>
+                  Você poderá cadastrar uma chapa, seus modelos, peças e as
+                  conexões entre eles.
+                </p>
+              </div>
+              <div id="dynamicEditor" class="panel" hidden></div>
+            </div>
+          </div>
+        </section>
+        <section id="tasks" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">CENTRAL DE AÇÕES</p>
+              <h1>Tasks</h1>
+              <p class="product-meta">
+                Tudo que precisa de atenção: terceirização, acontecimentos do
+                processo e alertas de estoque.
+              </p>
+            </div>
+            <button type="button" class="secondary-button" id="tasksRefresh">
+              Atualizar
+            </button>
+          </div>
+          <div id="tasksSummary" class="tasks-summary"></div>
+          <div class="tasks-toolbar panel">
+            <label
+              >Pesquisar task<input
+                id="tasksSearch"
+                placeholder="Produto, família ou descrição" /></label
+            ><label
+              >Tipo<select id="tasksTypeFilter">
+                <option value="">Todos os tipos</option>
+                <option value="outsourcing">Terceirização</option>
+                <option value="stock">Estoque</option>
+                <option value="dynamic">Produtos dinâmicos</option>
+                <option value="expiry">Validade</option>
+              </select></label
+            >
+          </div>
+          <div id="tasksList" class="panel tasks-list"></div>
+        </section>
+        <section id="supplier-orders" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">COMPRAS E RECEBIMENTOS</p>
+              <h1>Estoque fornecedor</h1>
+              <p class="product-meta">Cadastre o que foi comprado e registre cada entrega parcial no estoque correto.</p>
+            </div>
+          </div>
+          <div class="supplier-orders-toolbar panel">
+            <input id="supplierOrdersSearch" placeholder="Pesquisar pedido, fornecedor ou produto" />
+            <select id="supplierOrdersStatus"><option value="">Todos os status</option><option value="open">Abertos</option><option value="partial">Parciais</option><option value="complete">Concluídos</option></select>
+            <select id="supplierOrdersType"><option value="">Todos os tipos</option><option value="product">Produto comum</option><option value="dynamic">Produto dinâmico</option><option value="outsourcing">Terceirização</option></select>
+          </div>
+          <form id="supplierOrderForm" class="panel supplier-order-form">
+            <div class="supplier-form-heading"><div><p class="eyebrow">NOVA COMPRA</p><h3>Novo pedido de fornecedor</h3></div><span>O pedido fica aberto até todas as entregas serem conferidas.</span></div>
+            <div class="form-grid">
+              <label>Fornecedor<select name="supplier" id="supplierOrderSupplier" class="picker-select" required><option value="">Selecione o fornecedor</option></select></label>
+              <label>Data da compra<input name="order_date" type="date" required></label>
+              <label>Número do pedido / ID externo<input name="external_id" placeholder="Ex.: PED-2026-001 ou NF-123"></label>
+              <label>Tipo de item<select name="product_type" id="supplierOrderType"><option value="product">Produto comum</option><option value="dynamic">Produto dinâmico</option><option value="outsourcing">Produto de terceirização</option></select></label>
+              <label>Produto<div class="supplier-product-picker rich-picker-field"><input id="supplierOrderProductSearch" type="text" autocomplete="off" placeholder="Selecione o produto" required><input name="product_id" id="supplierOrderProduct" type="hidden"><div id="supplierOrderProductMenu" class="rich-picker-menu" hidden></div></div></label>
+              <label>Quantidade comprada<input name="quantity_ordered" id="supplierOrderQuantity" type="number" min="0.01" step="0.01" required></label>
+              <div id="supplierDynamicPlanPreview" class="supplier-dynamic-plan-preview wide" hidden></div>
+              <label class="wide">Observação do pedido<input name="note" placeholder="Ex.: fornecedor enviará os componentes em duas etapas"></label>
+            </div>
+            <div class="supplier-form-actions"><span class="product-meta">Você poderá registrar vários recebimentos parciais depois.</span><button class="primary" type="submit">Cadastrar compra</button></div>
+          </form>
+          <div id="supplierOrdersList" class="supplier-orders-list"></div>
+        </section>
+        <section id="warehouses" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">CONFIGURAÇÃO</p>
+              <h1>Estoques</h1>
+            </div>
+            <button class="primary" id="newWarehouse">+ Novo estoque</button>
+          </div>
+          <div id="warehouseGrid" class="warehouse-cards"></div>
+        </section>
+        <section id="categories" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">CADASTROS</p>
+              <h1>Categorias</h1>
+            </div>
+            <button class="primary" id="newCategory">+ Nova categoria</button>
+          </div>
+          <div id="categoryList" class="catalog-lists"></div>
+        </section>
+        <section id="catalogs" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">CADASTROS</p>
+              <h1>Marcas e fornecedores</h1>
+            </div>
+          </div>
+          <div class="catalog-panels">
+            <form id="brandForm" class="panel">
+              <h3>Nova marca</h3>
+              <input name="name" placeholder="Nome da marca" required /><button
+                class="primary"
+              >
+                Cadastrar marca
+              </button>
+            </form>
+            <form id="supplierForm" class="panel">
+              <h3>Novo fornecedor</h3>
+              <input
+                name="name"
+                placeholder="Nome do fornecedor"
+                required
+              /><button class="primary">Cadastrar fornecedor</button>
+            </form>
+          </div>
+          <div id="catalogLists" class="catalog-lists"></div>
+        </section>
+        <section id="marketplaces" class="view">
+          <div class="view-head"><div><p class="eyebrow">INTEGRAÇÕES</p><h1 id="marketplaceViewTitle">Conectar APIs</h1><p id="marketplaceViewDescription" class="product-meta">Mercado Livre, Shopee e qualquer sistema externo com API ou webhook.</p></div><div class="marketplace-actions"><button type="button" class="secondary" id="newCustomConnection" data-action="new-custom-connection">+ Criar nova conexão</button><button type="button" class="secondary" id="marketplaceSync">Sincronizar agora</button></div></div>
+          <section class="marketplace-integrations panel">
+            <div class="marketplace-section-head marketplace-section-head-first"><div><p class="eyebrow">CANAIS DE VENDA</p><h2>Integrações</h2><p class="product-meta">Conecte cada canal uma vez. Depois, o sistema identifica os pedidos pelo anúncio e pela variação.</p></div></div>
+            <div id="marketplaceCards" class="marketplace-grid"></div>
+          </section>
+          <section class="marketplace-workspace marketplace-orders-workspace panel">
+            <div class="marketplace-section-head marketplace-section-head-first"><div><p class="eyebrow">PEDIDOS E MAPEAMENTOS</p><h2>Operação diária</h2><p class="product-meta">Encontre uma venda, confira o vínculo e edite somente o que precisa.</p></div><button type="button" class="primary" id="newMarketplaceListing">+ Adicionar anúncio</button></div>
+            <div class="marketplace-kpis" id="marketplaceKpis"></div>
+            <div class="marketplace-toolbar marketplace-catalog-toolbar"><input id="marketplaceExternalSearch" placeholder="Pesquisar pedido, anúncio, SKU ou produto" /><select id="marketplaceMappingProviderFilter"><option value="">Todos os canais</option><option value="mercadolivre">Mercado Livre</option><option value="shopee">Shopee</option></select><select id="marketplaceMappingStatusFilter"><option value="">Todos os status</option><option value="mapped">Mapeado</option><option value="pending">Aguardando mapeamento</option></select></div>
+            <div class="marketplace-section-head marketplace-subsection-head"><div><p class="eyebrow">CATÁLOGO EXTERNO</p><h3>Pedidos e itens para mapear</h3></div><span id="marketplaceExternalCount" class="marketplace-count"></span></div>
+            <div id="marketplaceListings" class="marketplace-listings marketplace-listings-large"></div>
+          </section>
+          <section class="marketplace-workspace marketplace-rules-workspace panel">
+            <div class="marketplace-section-head marketplace-section-head-first"><div><p class="eyebrow">REGRAS DO ESTOQUE</p><h2>Mapeamentos ativos</h2><p class="product-meta">Consulte, filtre e desative vínculos sem navegar por um canvas gigante.</p></div><div class="marketplace-actions"><button type="button" class="secondary" id="marketplaceUndoMapping" hidden>Desfazer desativação</button><button type="button" class="secondary" id="openMarketplaceMap">Abrir mapa visual</button></div></div>
+            <div class="marketplace-rule-toolbar marketplace-catalog-toolbar"><input id="marketplaceRuleSearch" placeholder="Pesquisar anúncio, pedido, SKU ou produto interno" /><select id="marketplaceRuleTypeFilter"><option value="">Todos os tipos</option><option value="product">Produto comum</option><option value="kit">Kit</option><option value="outsourcing">Terceirização</option><option value="dynamic_product">Produto dinâmico</option><option value="dynamic_component">Componente dinâmico</option></select><span id="marketplaceMappingCount" class="marketplace-count"></span></div>
+            <div id="marketplaceMappings" class="marketplace-rules-table"></div><div id="marketplaceMappingPagination" class="marketplace-pagination"></div>
+          </section>
+        </section>
+        <section id="addons" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">PERSONALIZAÇÃO</p>
+              <h1>Addons</h1>
+              <p class="product-meta">Ative somente os recursos especiais que você deseja deixar disponíveis na barra lateral.</p>
+            </div>
+          </div>
+          <div class="addons-grid">
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">COMPOSIÇÃO</p><h2>Kits</h2><p>Monte conjuntos de produtos e acompanhe a saída dos itens que fazem parte de cada kit.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="kits" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">PRODUÇÃO EXTERNA</p><h2>Terceirização</h2><p>Controle contagens, envios, retornos e conferências de serviços terceirizados.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="outsourcing" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">ESTRUTURA E COMPOSIÇÃO</p><h2>Produtos dinâmicos</h2><p>Monte produtos em várias etapas, conecte componentes e acompanhe a capacidade de produção.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="dynamic-products" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">COMPRAS E RECEBIMENTOS</p><h2>Estoque fornecedor</h2><p>Cadastre pedidos de compra e registre entregas parciais no estoque correto.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="supplier-orders" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">INTEGRAÇÕES</p><h2>Conectar APIs</h2><p>Conecte marketplaces e outros sistemas externos para sincronizar pedidos, anúncios e estoque.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="marketplaces" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+            <article class="addon-card"><div class="addon-card-copy"><p class="addon-kicker">RASTREABILIDADE</p><h2>Controle de validade</h2><p>Registre vencimentos por lote, receba alertas antecipados e acompanhe produtos vencidos ou próximos do vencimento.</p></div><label class="switch"><input type="checkbox" data-toggle-feature="expiry-control" /><span class="slider"><span class="glow"></span><span class="icon-on">✓</span><span class="icon-off">✕</span></span></label></article>
+          </div>
+        </section>
+        <section id="expiry-control" class="view">
+          <div class="view-head"><div><p class="eyebrow">RASTREABILIDADE</p><h1>Controle de validade</h1><p class="product-meta">Lotes, estoque baixo e produtos cadastrados em um só lugar.</p></div><button type="button" class="secondary-button" id="expiryRefresh">Atualizar</button></div>
+          <div id="vxBanner"></div>
+          <div id="expirySummary" class="vx-kpis"></div>
+          <div class="vx-grid2">
+            <div class="panel vx-panel"><h3>Quando os lotes vencem</h3><p class="product-meta">Quantidade de itens em cada faixa de prazo.</p><div id="vxBars"></div></div>
+            <div class="panel vx-panel"><h3>Sair primeiro (FEFO)</h3><p class="product-meta">Lotes que vencem antes devem ser vendidos ou usados primeiro.</p><div id="vxFefo"></div></div>
+          </div>
+          <div id="vxTabs" class="vx-tabs" role="tablist"></div>
+          <div id="vxTools" class="vx-tools"><label id="vxFilterBox">Visão<select id="expiryFilter"><option value="attention">Vencendo ou vencidos</option><option value="expired">Só vencidos</option><option value="all">Todos os lotes</option><option value="resolved">Resolvidos</option></select></label><input type="search" id="vxSearch" placeholder="Buscar produto, SKU ou lote" aria-label="Buscar"></div>
+          <div id="expiryList" class="vx-view"></div>
+        </section>
+        <section id="importexport" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">DADOS</p>
+              <h1>Importar / Exportar</h1>
+            </div>
+          </div>
+          <div class="import-grid">
+            <div class="panel">
+              <h3>Exportar dados</h3>
+              <p class="product-meta">
+                Baixe todos os produtos, estoques, kits, movimentações,
+                categorias, marcas, fornecedores e terceirizações.
+              </p>
+              <button class="primary" id="exportData">
+                Baixar export_estoque.json
+              </button>
+            </div>
+            <div class="panel danger-panel">
+              <h3>Apagar todos os dados</h3>
+              <p class="product-meta">
+                Zera o banco inteiro e mantém somente a estrutura JSON vazia.
+              </p>
+              <button class="danger" id="resetData">APAGAR tudo</button>
+            </div>
+            <form id="importForm" class="panel">
+              <h3>Importar dados</h3>
+              <p class="product-meta">
+                Selecione um arquivo JSON exportado deste sistema para
+                substituir os dados atuais.
+              </p>
+              <input
+                id="importFile"
+                type="file"
+                accept="application/json,.json"
+                required
+              /><button class="primary">Importar JSON</button>
+            </form>
+          </div>
+        </section>
+        <section id="history" class="view">
+          <div class="view-head">
+            <div>
+              <p class="eyebrow">RASTREABILIDADE</p>
+              <h1>Histórico</h1>
+            </div>
+          </div>
+          <div class="history-filter-panel panel">
+            <div class="history-filter-grid">
+              <label
+                >Nota ou número<input
+                  id="historySearch"
+                  placeholder="Pesquisar nota, família ou produto" /></label
+              ><label
+                >Data inicial<input id="historyDateFrom" type="date" /></label
+              ><label>Data final<input id="historyDateTo" type="date" /></label
+              ><label
+                >Produto<select id="historyProduct">
+                  <option value="">Todos os produtos</option>
+                </select></label
+              ><label
+                >Estoque<select id="historyWarehouse">
+                  <option value="">Todos os estoques</option>
+                </select></label
+              ><button type="button" class="secondary-button" id="historyClear">
+                Limpar filtros
+              </button>
+            </div>
+          </div>
+          <div class="panel table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Tipo</th>
+                  <th>Nota</th>
+                  <th>Estoque</th>
+                  <th>Produtos</th>
+                  <th>Observação</th>
+                </tr>
+              </thead>
+              <tbody id="historyRows"></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+    <datalist id="productOptions"></datalist
+    ><datalist id="kitOptions"></datalist
+    ><datalist id="productOrKitOptions"></datalist
+    ><datalist id="categoryOptions"></datalist
+    ><datalist id="brandOptions"></datalist
+    ><datalist id="supplierOptions"></datalist>
+    <div id="modal" class="modal">
+      <div class="modal-card">
+        <button class="close">×</button>
+        <div id="modalContent"></div>
+      </div>
+    </div>
+    <div id="toast"></div>
+    <datalist id="adjustReasonOptions">
+      <option value="Contagem física"></option>
+      <option value="Ajuste de inventário"></option>
+      <option value="Avaria"></option>
+      <option value="Perda"></option>
+      <option value="Correção de cadastro"></option></datalist
+    ><datalist id="saleSourceOptions">
+      <option value="Venda do sistema"></option>
+      <option value="Mercado Livre"></option>
+      <option value="Shopee"></option>
+      <option value="Sistema 2"></option>
+    </datalist>
+    <script src="static/js/local-storage.js"></script><script src="static/js/app.js"></script>
+  </body>
+</html>
